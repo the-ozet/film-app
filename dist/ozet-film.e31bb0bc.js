@@ -28142,6 +28142,7 @@ var T = new _sentenceTokenizer.default();
 T.setEntry(TEXT);
 var SENTENCES = T.getSentences();
 var VIDEOS = ['pigs.mp4', 'ice.mp4', 'snails.m4v', 'dirt.mp4', 'cows.mp4'];
+var AUDIO = ['OoRT-I.mp3', 'OoRT-5.m4a'];
 var BGS = ['cloud', 'nebula', 'board', 'rocks'];
 
 function randomTo(min, max) {
@@ -28213,10 +28214,38 @@ Words.defaultProps = {
   maxLength: 3
 };
 
-var Video =
+var Audio =
 /*#__PURE__*/
 function (_Component2) {
-  _inherits(Video, _Component2);
+  _inherits(Audio, _Component2);
+
+  function Audio() {
+    _classCallCheck(this, Audio);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(Audio).apply(this, arguments));
+  }
+
+  _createClass(Audio, [{
+    key: "render",
+    value: function render() {
+      var src = "".concat(BUCKET).concat(AUDIO[randomTo(0, AUDIO.length - 1)]);
+      var type = "audio/".concat(src.match(/\.([mpma34]{3}$)/)[1]);
+      return _react.default.createElement("audio", {
+        controls: true
+      }, _react.default.createElement("source", {
+        src: src,
+        type: type
+      }), _react.default.createElement("p", null, "Your browser doesn't support HTML5 audio."));
+    }
+  }]);
+
+  return Audio;
+}(_react.Component);
+
+var Video =
+/*#__PURE__*/
+function (_Component3) {
+  _inherits(Video, _Component3);
 
   function Video(props) {
     var _this3;
@@ -28255,8 +28284,8 @@ function (_Component2) {
 
 var Screen =
 /*#__PURE__*/
-function (_Component3) {
-  _inherits(Screen, _Component3);
+function (_Component4) {
+  _inherits(Screen, _Component4);
 
   function Screen(props) {
     var _this4;
@@ -28316,7 +28345,7 @@ function (_Component3) {
           'backgroundImage': "url('".concat(BUCKET).concat(bg, ".jpg')")
         }
       };
-      return _react.default.createElement("div", props, this.renderPanels(), _react.default.createElement(Words, null));
+      return _react.default.createElement("div", props, this.renderPanels(), _react.default.createElement(Words, null), _react.default.createElement(Audio, null));
     }
   }]);
 

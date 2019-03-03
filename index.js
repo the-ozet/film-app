@@ -21,6 +21,11 @@ const VIDEOS = [
   'cows.mp4'
 ]
 
+const AUDIO = [
+  'OoRT-I.mp3',
+  'OoRT-5.m4a',
+]
+
 const BGS = [
   'cloud',
   'nebula',
@@ -76,6 +81,17 @@ Words.propTypes = {
 
 Words.defaultProps = {
   maxLength: 3
+}
+
+class Audio extends Component {
+  render() {
+    const src = `${BUCKET}${AUDIO[randomTo(0, AUDIO.length - 1)]}`;
+    const type = `audio/${src.match(/\.([mpma34]{3}$)/)[1]}`;
+    return <audio controls={true}>
+      <source src={ src } type={ type }/>
+      <p>Your browser doesn't support HTML5 audio.</p>
+    </audio>
+  }
 }
 
 class Video extends Component {
@@ -143,6 +159,7 @@ class Screen extends Component {
     return <div { ...props }>
       { this.renderPanels() }
       <Words />
+      <Audio />
     </div>
   }
 
