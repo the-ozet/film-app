@@ -12,7 +12,8 @@
   "dependencies": {
     "prop-types": "^15.7.2",
     "react": "^16.8.3",
-    "react-dom": "^16.8.3"
+    "react-dom": "^16.8.3",
+    "sentence-tokenizer": "^1.0.1"
   },
   "devDependencies": {
     "sass": "^1.17.2"

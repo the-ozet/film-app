@@ -26448,7 +26448,1658 @@ if ("development" !== 'production') {
   // http://fb.me/prop-types-in-prod
   module.exports = require('./factoryWithThrowingShims')();
 }
-},{"react-is":"node_modules/react-is/index.js","./factoryWithTypeCheckers":"node_modules/prop-types/factoryWithTypeCheckers.js"}],"index.js":[function(require,module,exports) {
+},{"react-is":"node_modules/react-is/index.js","./factoryWithTypeCheckers":"node_modules/prop-types/factoryWithTypeCheckers.js"}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
+
+},{}],"node_modules/sentence-tokenizer/node_modules/ms/index.js":[function(require,module,exports) {
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var w = d * 7;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options) {
+  options = options || {};
+  var type = typeof val;
+  if (type === 'string' && val.length > 0) {
+    return parse(val);
+  } else if (type === 'number' && isNaN(val) === false) {
+    return options.long ? fmtLong(val) : fmtShort(val);
+  }
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = String(str);
+  if (str.length > 100) {
+    return;
+  }
+  var match = /^((?:\d+)?\-?\d?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
+    str
+  );
+  if (!match) {
+    return;
+  }
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtShort(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return Math.round(ms / d) + 'd';
+  }
+  if (msAbs >= h) {
+    return Math.round(ms / h) + 'h';
+  }
+  if (msAbs >= m) {
+    return Math.round(ms / m) + 'm';
+  }
+  if (msAbs >= s) {
+    return Math.round(ms / s) + 's';
+  }
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtLong(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
+}
+
+},{}],"node_modules/sentence-tokenizer/node_modules/debug/src/common.js":[function(require,module,exports) {
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ */
+
+function setup(env) {
+	createDebug.debug = createDebug;
+	createDebug.default = createDebug;
+	createDebug.coerce = coerce;
+	createDebug.disable = disable;
+	createDebug.enable = enable;
+	createDebug.enabled = enabled;
+	createDebug.humanize = require('ms');
+
+	Object.keys(env).forEach(key => {
+		createDebug[key] = env[key];
+	});
+
+	/**
+	* Active `debug` instances.
+	*/
+	createDebug.instances = [];
+
+	/**
+	* The currently active debug mode names, and names to skip.
+	*/
+
+	createDebug.names = [];
+	createDebug.skips = [];
+
+	/**
+	* Map of special "%n" handling functions, for the debug "format" argument.
+	*
+	* Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+	*/
+	createDebug.formatters = {};
+
+	/**
+	* Selects a color for a debug namespace
+	* @param {String} namespace The namespace string for the for the debug instance to be colored
+	* @return {Number|String} An ANSI color code for the given namespace
+	* @api private
+	*/
+	function selectColor(namespace) {
+		let hash = 0;
+
+		for (let i = 0; i < namespace.length; i++) {
+			hash = ((hash << 5) - hash) + namespace.charCodeAt(i);
+			hash |= 0; // Convert to 32bit integer
+		}
+
+		return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
+	}
+	createDebug.selectColor = selectColor;
+
+	/**
+	* Create a debugger with the given `namespace`.
+	*
+	* @param {String} namespace
+	* @return {Function}
+	* @api public
+	*/
+	function createDebug(namespace) {
+		let prevTime;
+
+		function debug(...args) {
+			// Disabled?
+			if (!debug.enabled) {
+				return;
+			}
+
+			const self = debug;
+
+			// Set `diff` timestamp
+			const curr = Number(new Date());
+			const ms = curr - (prevTime || curr);
+			self.diff = ms;
+			self.prev = prevTime;
+			self.curr = curr;
+			prevTime = curr;
+
+			args[0] = createDebug.coerce(args[0]);
+
+			if (typeof args[0] !== 'string') {
+				// Anything else let's inspect with %O
+				args.unshift('%O');
+			}
+
+			// Apply any `formatters` transformations
+			let index = 0;
+			args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
+				// If we encounter an escaped % then don't increase the array index
+				if (match === '%%') {
+					return match;
+				}
+				index++;
+				const formatter = createDebug.formatters[format];
+				if (typeof formatter === 'function') {
+					const val = args[index];
+					match = formatter.call(self, val);
+
+					// Now we need to remove `args[index]` since it's inlined in the `format`
+					args.splice(index, 1);
+					index--;
+				}
+				return match;
+			});
+
+			// Apply env-specific formatting (colors, etc.)
+			createDebug.formatArgs.call(self, args);
+
+			const logFn = self.log || createDebug.log;
+			logFn.apply(self, args);
+		}
+
+		debug.namespace = namespace;
+		debug.enabled = createDebug.enabled(namespace);
+		debug.useColors = createDebug.useColors();
+		debug.color = selectColor(namespace);
+		debug.destroy = destroy;
+		debug.extend = extend;
+		// Debug.formatArgs = formatArgs;
+		// debug.rawLog = rawLog;
+
+		// env-specific initialization logic for debug instances
+		if (typeof createDebug.init === 'function') {
+			createDebug.init(debug);
+		}
+
+		createDebug.instances.push(debug);
+
+		return debug;
+	}
+
+	function destroy() {
+		const index = createDebug.instances.indexOf(this);
+		if (index !== -1) {
+			createDebug.instances.splice(index, 1);
+			return true;
+		}
+		return false;
+	}
+
+	function extend(namespace, delimiter) {
+		return createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+	}
+
+	/**
+	* Enables a debug mode by namespaces. This can include modes
+	* separated by a colon and wildcards.
+	*
+	* @param {String} namespaces
+	* @api public
+	*/
+	function enable(namespaces) {
+		createDebug.save(namespaces);
+
+		createDebug.names = [];
+		createDebug.skips = [];
+
+		let i;
+		const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+		const len = split.length;
+
+		for (i = 0; i < len; i++) {
+			if (!split[i]) {
+				// ignore empty strings
+				continue;
+			}
+
+			namespaces = split[i].replace(/\*/g, '.*?');
+
+			if (namespaces[0] === '-') {
+				createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+			} else {
+				createDebug.names.push(new RegExp('^' + namespaces + '$'));
+			}
+		}
+
+		for (i = 0; i < createDebug.instances.length; i++) {
+			const instance = createDebug.instances[i];
+			instance.enabled = createDebug.enabled(instance.namespace);
+		}
+	}
+
+	/**
+	* Disable debug output.
+	*
+	* @return {String} namespaces
+	* @api public
+	*/
+	function disable() {
+		const namespaces = [
+			...createDebug.names.map(toNamespace),
+			...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)
+		].join(',');
+		createDebug.enable('');
+		return namespaces;
+	}
+
+	/**
+	* Returns true if the given mode name is enabled, false otherwise.
+	*
+	* @param {String} name
+	* @return {Boolean}
+	* @api public
+	*/
+	function enabled(name) {
+		if (name[name.length - 1] === '*') {
+			return true;
+		}
+
+		let i;
+		let len;
+
+		for (i = 0, len = createDebug.skips.length; i < len; i++) {
+			if (createDebug.skips[i].test(name)) {
+				return false;
+			}
+		}
+
+		for (i = 0, len = createDebug.names.length; i < len; i++) {
+			if (createDebug.names[i].test(name)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	* Convert regexp to namespace
+	*
+	* @param {RegExp} regxep
+	* @return {String} namespace
+	* @api private
+	*/
+	function toNamespace(regexp) {
+		return regexp.toString()
+			.substring(2, regexp.toString().length - 2)
+			.replace(/\.\*\?$/, '*');
+	}
+
+	/**
+	* Coerce `val`.
+	*
+	* @param {Mixed} val
+	* @return {Mixed}
+	* @api private
+	*/
+	function coerce(val) {
+		if (val instanceof Error) {
+			return val.stack || val.message;
+		}
+		return val;
+	}
+
+	createDebug.enable(createDebug.load());
+
+	return createDebug;
+}
+
+module.exports = setup;
+
+},{"ms":"node_modules/sentence-tokenizer/node_modules/ms/index.js"}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/process/browser.js":[function(require,module,exports) {
+
+// shim for using process in browser
+var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+  throw new Error('setTimeout has not been defined');
+}
+
+function defaultClearTimeout() {
+  throw new Error('clearTimeout has not been defined');
+}
+
+(function () {
+  try {
+    if (typeof setTimeout === 'function') {
+      cachedSetTimeout = setTimeout;
+    } else {
+      cachedSetTimeout = defaultSetTimout;
+    }
+  } catch (e) {
+    cachedSetTimeout = defaultSetTimout;
+  }
+
+  try {
+    if (typeof clearTimeout === 'function') {
+      cachedClearTimeout = clearTimeout;
+    } else {
+      cachedClearTimeout = defaultClearTimeout;
+    }
+  } catch (e) {
+    cachedClearTimeout = defaultClearTimeout;
+  }
+})();
+
+function runTimeout(fun) {
+  if (cachedSetTimeout === setTimeout) {
+    //normal enviroments in sane situations
+    return setTimeout(fun, 0);
+  } // if setTimeout wasn't available but was latter defined
+
+
+  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+    cachedSetTimeout = setTimeout;
+    return setTimeout(fun, 0);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedSetTimeout(fun, 0);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+      return cachedSetTimeout.call(null, fun, 0);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+      return cachedSetTimeout.call(this, fun, 0);
+    }
+  }
+}
+
+function runClearTimeout(marker) {
+  if (cachedClearTimeout === clearTimeout) {
+    //normal enviroments in sane situations
+    return clearTimeout(marker);
+  } // if clearTimeout wasn't available but was latter defined
+
+
+  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+    cachedClearTimeout = clearTimeout;
+    return clearTimeout(marker);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedClearTimeout(marker);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+      return cachedClearTimeout.call(null, marker);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+      // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+      return cachedClearTimeout.call(this, marker);
+    }
+  }
+}
+
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+  if (!draining || !currentQueue) {
+    return;
+  }
+
+  draining = false;
+
+  if (currentQueue.length) {
+    queue = currentQueue.concat(queue);
+  } else {
+    queueIndex = -1;
+  }
+
+  if (queue.length) {
+    drainQueue();
+  }
+}
+
+function drainQueue() {
+  if (draining) {
+    return;
+  }
+
+  var timeout = runTimeout(cleanUpNextTick);
+  draining = true;
+  var len = queue.length;
+
+  while (len) {
+    currentQueue = queue;
+    queue = [];
+
+    while (++queueIndex < len) {
+      if (currentQueue) {
+        currentQueue[queueIndex].run();
+      }
+    }
+
+    queueIndex = -1;
+    len = queue.length;
+  }
+
+  currentQueue = null;
+  draining = false;
+  runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+  var args = new Array(arguments.length - 1);
+
+  if (arguments.length > 1) {
+    for (var i = 1; i < arguments.length; i++) {
+      args[i - 1] = arguments[i];
+    }
+  }
+
+  queue.push(new Item(fun, args));
+
+  if (queue.length === 1 && !draining) {
+    runTimeout(drainQueue);
+  }
+}; // v8 likes predictible objects
+
+
+function Item(fun, array) {
+  this.fun = fun;
+  this.array = array;
+}
+
+Item.prototype.run = function () {
+  this.fun.apply(null, this.array);
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+  return [];
+};
+
+process.binding = function (name) {
+  throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+  return '/';
+};
+
+process.chdir = function (dir) {
+  throw new Error('process.chdir is not supported');
+};
+
+process.umask = function () {
+  return 0;
+};
+},{}],"node_modules/sentence-tokenizer/node_modules/debug/src/browser.js":[function(require,module,exports) {
+var process = require("process");
+/* eslint-env browser */
+
+/**
+ * This is the web browser implementation of `debug()`.
+ */
+exports.log = log;
+exports.formatArgs = formatArgs;
+exports.save = save;
+exports.load = load;
+exports.useColors = useColors;
+exports.storage = localstorage();
+/**
+ * Colors.
+ */
+
+exports.colors = ['#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC', '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF', '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC', '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF', '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC', '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033', '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366', '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933', '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC', '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF', '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'];
+/**
+ * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+ * and the Firebug extension (any Firefox version) are known
+ * to support "%c" CSS customizations.
+ *
+ * TODO: add a `localStorage` variable to explicitly enable/disable colors
+ */
+// eslint-disable-next-line complexity
+
+function useColors() {
+  // NB: In an Electron preload script, document will be defined but not fully
+  // initialized. Since we know we're in Chrome, we'll just detect this case
+  // explicitly
+  if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
+    return true;
+  } // Internet Explorer and Edge do not support colors.
+
+
+  if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+    return false;
+  } // Is webkit? http://stackoverflow.com/a/16459606/376773
+  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+
+
+  return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
+  typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+  // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+  typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+  typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
+}
+/**
+ * Colorize log arguments if enabled.
+ *
+ * @api public
+ */
+
+
+function formatArgs(args) {
+  args[0] = (this.useColors ? '%c' : '') + this.namespace + (this.useColors ? ' %c' : ' ') + args[0] + (this.useColors ? '%c ' : ' ') + '+' + module.exports.humanize(this.diff);
+
+  if (!this.useColors) {
+    return;
+  }
+
+  const c = 'color: ' + this.color;
+  args.splice(1, 0, c, 'color: inherit'); // The final "%c" is somewhat tricky, because there could be other
+  // arguments passed either before or after the %c, so we need to
+  // figure out the correct index to insert the CSS into
+
+  let index = 0;
+  let lastC = 0;
+  args[0].replace(/%[a-zA-Z%]/g, match => {
+    if (match === '%%') {
+      return;
+    }
+
+    index++;
+
+    if (match === '%c') {
+      // We only are interested in the *last* %c
+      // (the user may have provided their own)
+      lastC = index;
+    }
+  });
+  args.splice(lastC, 0, c);
+}
+/**
+ * Invokes `console.log()` when available.
+ * No-op when `console.log` is not a "function".
+ *
+ * @api public
+ */
+
+
+function log(...args) {
+  // This hackery is required for IE8/9, where
+  // the `console.log` function doesn't have 'apply'
+  return typeof console === 'object' && console.log && console.log(...args);
+}
+/**
+ * Save `namespaces`.
+ *
+ * @param {String} namespaces
+ * @api private
+ */
+
+
+function save(namespaces) {
+  try {
+    if (namespaces) {
+      exports.storage.setItem('debug', namespaces);
+    } else {
+      exports.storage.removeItem('debug');
+    }
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
+}
+/**
+ * Load `namespaces`.
+ *
+ * @return {String} returns the previously persisted debug modes
+ * @api private
+ */
+
+
+function load() {
+  let r;
+
+  try {
+    r = exports.storage.getItem('debug');
+  } catch (error) {} // Swallow
+  // XXX (@Qix-) should we be logging these?
+  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+
+
+  if (!r && typeof process !== 'undefined' && 'env' in process) {
+    r = undefined;
+  }
+
+  return r;
+}
+/**
+ * Localstorage attempts to return the localstorage.
+ *
+ * This is necessary because safari throws
+ * when a user disables cookies/localstorage
+ * and you attempt to access it.
+ *
+ * @return {LocalStorage}
+ * @api private
+ */
+
+
+function localstorage() {
+  try {
+    // TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
+    // The Browser also has localStorage in the global context.
+    return localStorage;
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
+}
+
+module.exports = require('./common')(exports);
+const {
+  formatters
+} = module.exports;
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+formatters.j = function (v) {
+  try {
+    return JSON.stringify(v);
+  } catch (error) {
+    return '[UnexpectedJSONParseError]: ' + error.message;
+  }
+};
+},{"./common":"node_modules/sentence-tokenizer/node_modules/debug/src/common.js","process":"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/process/browser.js"}],"node_modules/sentence-tokenizer/lib/tokenizer.js":[function(require,module,exports) {
+"use strict";
+
+// eslint-disable-next-line no-unused-vars
+var debug = require('debug')('tokenizer');
+
+function compact(str) {
+  var res = str.trim();
+  res = res.replace('  ', ' ');
+  return res;
+}
+
+function Tokenizer(username, botname) {
+
+  // // Maybe it is not useful
+  // if (!(this instanceof Tokenizer)) {
+  //   return new Tokenizer();
+  // }
+
+  this.username = username || 'Guy';
+  this.entry = null;
+  this.sentences = null;
+
+  if (typeof botname == 'string') {
+    this.botname = botname;
+  }
+  else {
+    this.botname = 'ECTOR';
+  }
+}
+
+Tokenizer.prototype = {
+  setEntry : function (entry) {
+    this.entry = compact(entry);
+    this.sentences = null;
+  },
+  // Split the entry into sentences.
+  getSentences : function () {
+    // this.sentences = this.entry.split(/[\.!]\s/);
+    if (!this.entry) return [];
+    var words = this.entry.split(' ');
+    var endingWords = words.filter(function(w) {
+      return w.endsWith('.') || w.endsWith('!') || w.endsWith('?');
+    });
+
+    var self = this;
+    var botnameRegExp = new RegExp("\\W?" + self.botname.normalize() + "\\W?");
+    var usernameRegExp = new RegExp("\\W?" + self.username.normalize() + "\\W?");
+    var lastSentence = words[0];
+    self.sentences = [];
+    words.reduce(function (prev, cur) {
+      var curNormalized = cur.normalize();
+      var curReplaced = cur;
+      if (curNormalized.search(botnameRegExp) !== -1) {
+        curReplaced = cur.replace(self.botname,"{yourname}");
+      }
+      else if (curNormalized.search(usernameRegExp) !== -1) {
+        curReplaced = cur.replace(self.username,"{myname}");
+      }
+
+      if (endingWords.indexOf(prev) != -1) {
+        self.sentences.push(compact(lastSentence));
+        lastSentence = "";
+      }
+      lastSentence = lastSentence + " " + curReplaced;
+      return cur;
+    });
+    self.sentences.push(compact(lastSentence));
+    return this.sentences;
+  },
+  // Get the tokens of one sentence
+  getTokens : function (sentenceIndex) {
+    var s = 0;
+    if(typeof sentenceIndex === 'number') s = sentenceIndex;
+    return this.sentences[s].split(' ');
+  }
+};
+
+module.exports = Tokenizer;
+},{"debug":"node_modules/sentence-tokenizer/node_modules/debug/src/browser.js"}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/util/support/isBufferBrowser.js":[function(require,module,exports) {
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/inherits/inherits_browser.js":[function(require,module,exports) {
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/util/util.js":[function(require,module,exports) {
+var process = require("process");
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+var getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors || function getOwnPropertyDescriptors(obj) {
+  var keys = Object.keys(obj);
+  var descriptors = {};
+
+  for (var i = 0; i < keys.length; i++) {
+    descriptors[keys[i]] = Object.getOwnPropertyDescriptor(obj, keys[i]);
+  }
+
+  return descriptors;
+};
+
+var formatRegExp = /%[sdj%]/g;
+
+exports.format = function (f) {
+  if (!isString(f)) {
+    var objects = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function (x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+
+    switch (x) {
+      case '%s':
+        return String(args[i++]);
+
+      case '%d':
+        return Number(args[i++]);
+
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+
+      default:
+        return x;
+    }
+  });
+
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+
+  return str;
+}; // Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+
+
+exports.deprecate = function (fn, msg) {
+  if (typeof process !== 'undefined' && process.noDeprecation === true) {
+    return fn;
+  } // Allow for deprecating things in the process of starting up.
+
+
+  if (typeof process === 'undefined') {
+    return function () {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  var warned = false;
+
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+
+      warned = true;
+    }
+
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+var debugs = {};
+var debugEnviron;
+
+exports.debuglog = function (set) {
+  if (isUndefined(debugEnviron)) debugEnviron = undefined || '';
+  set = set.toUpperCase();
+
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+
+      debugs[set] = function () {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function () {};
+    }
+  }
+
+  return debugs[set];
+};
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+
+/* legacy: obj, showHidden, depth, colors*/
+
+
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  }; // legacy...
+
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  } // set default options
+
+
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+
+exports.inspect = inspect; // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+
+inspect.colors = {
+  'bold': [1, 22],
+  'italic': [3, 23],
+  'underline': [4, 24],
+  'inverse': [7, 27],
+  'white': [37, 39],
+  'grey': [90, 39],
+  'black': [30, 39],
+  'blue': [34, 39],
+  'cyan': [36, 39],
+  'green': [32, 39],
+  'magenta': [35, 39],
+  'red': [31, 39],
+  'yellow': [33, 39]
+}; // Don't use 'blue' not visible on cmd.exe
+
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str + '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+function arrayToHash(array) {
+  var hash = {};
+  array.forEach(function (val, idx) {
+    hash[val] = true;
+  });
+  return hash;
+}
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect && value && isFunction(value.inspect) && // Filter out the util module, it's inspect function is special
+  value.inspect !== exports.inspect && // Also filter out any prototype objects using the circular check.
+  !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+
+    return ret;
+  } // Primitive types cannot have properties
+
+
+  var primitive = formatPrimitive(ctx, value);
+
+  if (primitive) {
+    return primitive;
+  } // Look up the keys of the object.
+
+
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  } // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+
+
+  if (isError(value) && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  } // Some type of object without properties can be shortcutted.
+
+
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '',
+      array = false,
+      braces = ['{', '}']; // Make Array say that they are Array
+
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  } // Make functions say that they are functions
+
+
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  } // Make RegExps say that they are RegExps
+
+
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  } // Make dates with properties first say the date
+
+
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  } // Make error with message first say the error
+
+
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+  var output;
+
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function (key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+  return reduceToSingleString(output, base, braces);
+}
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value)) return ctx.stylize('undefined', 'undefined');
+
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '').replace(/'/g, "\\'").replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+
+  if (isNumber(value)) return ctx.stylize('' + value, 'number');
+  if (isBoolean(value)) return ctx.stylize('' + value, 'boolean'); // For some reason typeof null is "object", so special case here.
+
+  if (isNull(value)) return ctx.stylize('null', 'null');
+}
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+
+  keys.forEach(function (key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+    }
+  });
+  return output;
+}
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || {
+    value: value[key]
+  };
+
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function (line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function (line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+
+    name = JSON.stringify('' + key);
+
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function (prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] + (base === '' ? '' : base + '\n ') + ' ' + output.join(',\n  ') + ' ' + braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+} // NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+
+
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' || // ES6 symbol
+  typeof arg === 'undefined';
+}
+
+exports.isPrimitive = isPrimitive;
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; // 26 Feb 16:19:34
+
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+} // log is just a thin wrapper to console.log that prepends a timestamp
+
+
+exports.log = function () {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+
+
+exports.inherits = require('inherits');
+
+exports._extend = function (origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+  var keys = Object.keys(add);
+  var i = keys.length;
+
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+var kCustomPromisifiedSymbol = typeof Symbol !== 'undefined' ? Symbol('util.promisify.custom') : undefined;
+
+exports.promisify = function promisify(original) {
+  if (typeof original !== 'function') throw new TypeError('The "original" argument must be of type Function');
+
+  if (kCustomPromisifiedSymbol && original[kCustomPromisifiedSymbol]) {
+    var fn = original[kCustomPromisifiedSymbol];
+
+    if (typeof fn !== 'function') {
+      throw new TypeError('The "util.promisify.custom" argument must be of type Function');
+    }
+
+    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+      value: fn,
+      enumerable: false,
+      writable: false,
+      configurable: true
+    });
+    return fn;
+  }
+
+  function fn() {
+    var promiseResolve, promiseReject;
+    var promise = new Promise(function (resolve, reject) {
+      promiseResolve = resolve;
+      promiseReject = reject;
+    });
+    var args = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    args.push(function (err, value) {
+      if (err) {
+        promiseReject(err);
+      } else {
+        promiseResolve(value);
+      }
+    });
+
+    try {
+      original.apply(this, args);
+    } catch (err) {
+      promiseReject(err);
+    }
+
+    return promise;
+  }
+
+  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+  if (kCustomPromisifiedSymbol) Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    value: fn,
+    enumerable: false,
+    writable: false,
+    configurable: true
+  });
+  return Object.defineProperties(fn, getOwnPropertyDescriptors(original));
+};
+
+exports.promisify.custom = kCustomPromisifiedSymbol;
+
+function callbackifyOnRejected(reason, cb) {
+  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
+  // Because `null` is a special error value in callbacks which means "no error
+  // occurred", we error-wrap so the callback consumer can distinguish between
+  // "the promise rejected with null" or "the promise fulfilled with undefined".
+  if (!reason) {
+    var newReason = new Error('Promise was rejected with a falsy value');
+    newReason.reason = reason;
+    reason = newReason;
+  }
+
+  return cb(reason);
+}
+
+function callbackify(original) {
+  if (typeof original !== 'function') {
+    throw new TypeError('The "original" argument must be of type Function');
+  } // We DO NOT return the promise as it gives the user a false sense that
+  // the promise is actually somehow related to the callback's execution
+  // and that the callback throwing will reject the promise.
+
+
+  function callbackified() {
+    var args = [];
+
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    var maybeCb = args.pop();
+
+    if (typeof maybeCb !== 'function') {
+      throw new TypeError('The last argument must be of type Function');
+    }
+
+    var self = this;
+
+    var cb = function () {
+      return maybeCb.apply(self, arguments);
+    }; // In true node style we process the callback on `nextTick` with all the
+    // implications (stack, `uncaughtException`, `async_hooks`)
+
+
+    original.apply(this, args).then(function (ret) {
+      process.nextTick(cb, null, ret);
+    }, function (rej) {
+      process.nextTick(callbackifyOnRejected, rej, cb);
+    });
+  }
+
+  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
+  Object.defineProperties(callbackified, getOwnPropertyDescriptors(original));
+  return callbackified;
+}
+
+exports.callbackify = callbackify;
+},{"./support/isBuffer":"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/util/support/isBufferBrowser.js","inherits":"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/inherits/inherits_browser.js","process":"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/process/browser.js"}],"index.js":[function(require,module,exports) {
 'use strict';
 
 var _react = _interopRequireWildcard(require("react"));
@@ -26456,6 +28107,12 @@ var _react = _interopRequireWildcard(require("react"));
 var _reactDom = _interopRequireDefault(require("react-dom"));
 
 var _propTypes = _interopRequireDefault(require("prop-types"));
+
+var _fs = require("fs");
+
+var _sentenceTokenizer = _interopRequireDefault(require("sentence-tokenizer"));
+
+var _util = require("util");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -26479,72 +28136,167 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
-var Video =
+var BUCKET = 'http://fingermonkey.com/ozet-films/';
+var TEXT = "an OZET piece\nby Aaron Meicht & Scott Blumenthal\n\nOort\nOR\nWhy Pigs?\n\n\nSECTION 1\n\nOn stage, five MUSICIANS and four ACTORS.  \n\nTwo GUITARS, two HORNS, and PERCUSSION.\n\nAn OLDER MAN, a WOMAN, and a couple, COUPLE MAN and COUPLE WOMAN.\n\nIt is night, not long before dawn, on the road at the entrance to Village 4.  The perimeter of the village is a stockaded fence.  \n\nW, CM, and CW are asleep, under thick, wooly blankets.\n\nOM is awake.  He is dressed in an elaborate costume.  He rubs white powder into his beard to make himself look as old as can be.  He is preparing the ritual instrument on which the song will be played: a combination film projector and analog synthesizer.  The film needs to be loaded, the synth cables patched, etc.  He practices on the keyboard with no sound coming from the machine.  He lays out some part of a reciprocal gift in an elaborate pattern on the ground.\n\nThe MUSICIANS play Section 1.\n\n\nSECTION 2\n\nOM continues preparing the instrument.\n\nA sheep bleats. W wakes up.\n\nNOTE:  There are many silences throughout the following, long and short.  Where they fall, and how the characters enter and leave those silences, is at the actors' discretion.\n\nW: \tIs that them?\n\nOM: \tNo.  It's early.  They won't come early.\n\nW:\tI was confused.\n\nOM:\tThey'll come around nine.  You can sleep.\n\nW: \tI don't think I can.  Do we have to wait?  To start?\n\nOM: \tFor dawn?\n\nW: \tYes.\n\nOM: \tNo.\n\nW:\tMaybe we should start then.\n\nOM:\tNot yet.\n\nIndicates the sleeping CM\n\nHe'll get in my way.\nHe'll want to rewire everything, say\nI threaded the film wrong.\nHe's ambitious.\n\nW:\tHe has to be, doesn't he?  In his position.\n\nOM:\tThey chose to be together.  You, me: chose different.  We don't have to compromise. \n\nOM:\tBesides, I'm still Teacher.\n\nW:\tI know.\n\nW:\tThey'll come this time?\n\nOM:\tHave to.  If they don't they are trash,\nIn front of everyone.  But they promised to my face.  They needed  three more months to gather everything.  \n\nW:\tA long time.\n\nOM:\tWe waited longer for Village 12.\n\nW:\tI remember\n\nOM:\tYou're impatient.\n\nW:\tI know.\n\nIt's the quiet.\n\nOM:\tWe gave them 30 bushels of beets, and did without for a whole year.\n14 bushels of onions\n20 jugs of plum brandy\n5 sheep\na mule\na guitar\nblue chamomile \u2013 12 bundles, big ones\n\nIt used to grow with the onions.\n\nAnd then, also\nwell\n\ntook them three years to pay back the gift.\n\nW:\tI remember.\n\nOM:\tA humiliation. But in the end they did pay.\nI'm looking forward to the groats.  And the whisky, of course.\nYou?\n\nW:\tThe groats.\n\nOM:\tBut they can't leave before dawn.  Too dangerous now to carry gifts\non the road at night.\n\nI don't trust Anzori.\nBut I trust Bakhar.  He'll be Teacher next.   He'll\nmake sure they keep their promise.\n\nW:\tDid you ever see bandits?\n\nOM:\tOn the road?\n\nW:\tYes.\n\nOM:\tWe travel during the day.\n\nW:\tSomeone should catch them.\n\nI haven't been to Village 20 in seven years.  Has it changed much?\n\nOM:\tNot that much.  Same as everywhere.  Fewer animals, fewer cousins, fewer crops.  Not so much of their famous abundance anymore. They're still lazy though.  They won't change with the times.\n\nW:\tDid they seem happy?\n\nOM:\tHappy?\n\nWhat, all of them?\n\nW:\tMaybe the children?\n\nOM:\tI wouldn't say so.  Not much to look forward to, is there?\n\nW:\tWell we don't really know how long\n\nOM:\tBut soon we will have sacks and sacks of buckwheat.  Radishes.  They may even bring a goat.\nThere is often a surprise.\nThink about that: twice the milk.\n\nThen they can be proud, Village 20.\n\nW:\tContent.\n\nOM:\tFree\n\nW:\tof their obligation.\n\nOM:\tThat too.  But I mean\n\nWhen they've done what was hard, and right.\n\nW:\tHow many will come?\n\nOM:\tCouldn't say.\n\n\tCW wakes up.\n\nCW:\tIs it time?\n\nW:\tNot yet.\n\nCW:\tClose enough.  Did you make the porridge?\n\nW:\tNo.  \n\nOM:\tShe's helping me.\n\nCW:\tObviously.\nI'll do it.\n\nShe goes to wake CM.\n\nOM:\tWake him when you're done.\n\nCW:\tWe need water.  I have to start the fire.\nDo you want to get it?\n\n\tShe wakes up CM.\n\nCM:\tIs it time?\n\nCW:\tWe need water.\n\nCM:\tIs everything ready?\n\nOM:\tWe don't have porridge yet.\n\nCW:\tI'm making the fire.\n\nCM:\tWe should start, I think.\n\nOM:\tWe eat, then we start.\n\nCM:\tThere's not enough time.\n\nOM:\tOf course there is.\n\nW:\tWe should eat.  It will be a long time before they come.\n\nCW:\tYou'll get hungry.\n\nCM:\tI'm alone in this.  Where's the pot?\n\nCW:\tTake the bucket.\n\nCM:\tThere's some left.\n\n\tHe goes.\n\nCW piles charcoal in a primitive rocket-style stove and lights it.\n\nEventually, CM returns with a full bucket of water.\n\nCW:\tThank you.\n\nW:\tThank you.\n\n\tCW walks over and examines the instrument.\n\nNear OM's personal belongings there is a book.  He picks it up.  He sits down by CW, who is still making porridge.\n\nCM:\tThe god said do you have a good reason to be angry about the gourd?\nJonah said, I am very angry.  I am angry even to death.\n\nSaid that right to the god.\nWas this from\n\nOM:\tVillage 3.\n\nCW:\tReally?\n\nW:\tWhat is a gourd?\n\nCM:\tIt's like a pumpkin.\n\nOM:\tLarge enough to take shelter beneath.\n\nW:\tReally?\n\nOM:\tThat's how it's described.\n\nW:\tThey couldn't have been common.\n\nCM:\tThe god caused this one to grow up, to comfort Jonah.\nThen the god said to him, you pitied the gourd which you did not work to grow, which came up in a night and died in a night.\n\nCW:\tAngry to death.\n\nCM:\t\u2026 even to death.\n\nOM:\tThey also gave us a wagon.\n\nCW:\tYes.  There was that, at least.\n\nW:\tWe were talking\n\nI wondered how many more generations\ndo you think\none could hope for?\n\nCW:\tTwo.\n\nCM:\tProbably two.  I don't have a radical opinion.\nHave you turned that on?\n\nOM:\tIt works.\n\nCM:\tIt lights?\n\nOM:\tYes.\n\nW:\tAnd we'll never know more than we do right now.\n\nCW:\tAbout what?\n\nW:\tAnything.\n\nCW:\tI suppose not.\n\nW:\tI wish they'd come.\n\nCM:\tTurn it on.\nTo let it warm up.\n\nOM:\tWe'll hear them first.  We'll hear them approaching, but\nthey will also come striking the chimes.\n\n\n\n\n[...]\n\nW dresses.\n\nW has participated in the exchange before, of course.  She has never kept the vigil.  She has not visited another village in years.  The last village she visited, Village 7, is only 30 minutes away.\n\nThe exchange has been a fact of life for at least three generations.\n\nW finds a book OM is reading.  They talk about the book, which is text from earth.  (\"It is from earth, too.\")  OM is preoccupied though, expectant, nervous.\n\nThey discuss the exchange, and what OM is expecting to receive.  They talk about Village 20.  He doesn't trust them; he's expecting to be cheated in some way.\n\nCM wakes up, trades words with OM and W, and goes back to sleep.\n\nOM and W talk about the couple.\n\nThere are silences.\n\nThe visitors from Village Twenty will not arrive for at least three hours after dawn because they can't set off (from where?  would they have stopped in another village on the way?) until light.  The roads are dangerous at night.  There are, OM and W think, bandits.\n\nCW wakes up.  She asks W if she has made tea or porridge.  W has not, obviously.  CW boils water.  She makes porridge.\n\nW expects to see her daughter, who was raised in Village 20, and who is old enough, finally, to participate in the exchange (and a year later, to return to Village 4).\n\nThe porridge is ready and CW wakes up CM and gives everyone porridge.  They eat quickly. They finish dressing. They begin the song.\n\nSECTION 3\n\nMUSICIANS start playing Section 3 (a singularity).\n\nOM finishes preparing for the welcome song.  He switches on the projector.\n\nThe Earth Music (a linearity) that accompanies the film is clearer than the images.  The images fall, perhaps as an afterthought, on the posts of the fence.  \n\nThe film shows flightless songbirds against a flat background, completely outside their habitats or any context.  The birds are moving, but they are not singing, they are not eating, they are not doing anything that gives clues to what they are or what they are like.\n\nThe music is old and alien.  It is played on strings.\n\nThe ACTORS play four OZET Songs (different linearities) with the music of the film that complement it, expand it, claim it as their own.  There are words to their songs; the song of the film is instrumental only.  The instrument has a metronome, with programs for each different song.  The subject of each song is distinct:\n\n(Prime 3 Song \u2022 q=135) - The unique heritage of Village 4\n(Prime 5 Song \u2022 q=225) - How happy the villagers will be when they receive their gift\n(Prime 7 Song \u2022 q=157.5) - The alliance between Village 4 and Village 20\n(Prime 2 Song \u2022 q=90) - Earth\n\nWhen the characters sing, they may cover their mouths in some ritual manner. \n\nPrime 3 Song \u2022 q=135\nThe unique heritage of Village 4\n\nThe shore\nAnd the field\n\nBlack\nSea\n\nBlood red plums\n\nTo cultivate the oldest memories\nTakes a lot of patience\nFaith in the harvest yet to come\n\nThe tree\nIn the old square\n\noffers plums\nevery year.\n\nPrime 5 Song \u2022 q=225\nHow happy the villagers will be when they receive their gift\n\n\nHere in my mind\nI see you on the road\nat dawn and the dust is like a bridge\nthat you build\nas you walk\nand you wear\norange wool\nyellow leaves\non your coat like a waxwing's breast.\n\nSee the chest on it's bier;\nlocust thorns underneath\nguard the gift that you bring us.\nWe are happy.\n\n\nPrime 7 Song \u2022 q=157.5\nThe alliance between Village 4 and Village 20\n\nWhen I would do\nWithout\nWill you\nOffer to\nOpen your storehouse\nDoor to me?\n\nWill you\nWelcome too\n\nAll our daughters\nAll of our sons\n\nWhat about the cousin\nOut on her own\nhungry?\n\nWhen I would do\nWithout\nWill you\nOffer to\nOpen your storehouse\nDoor to me?\n\nWill you\nWelcome me?\n\n\nPrime 2 Song \u2022 q=90\nEarth\n\nSearch for a seed\nswaddled\nasleep\nsilent in the field\n\nburrow\n\nand ask it\nfor\n\nsomething\nthat we could know.\n\nFrom what we know:\n\nStork Feather\n(Gone)\nStar Aster\n(Gone)\nStork Feather\n(Gone)\nForever\n(Gone)\n\n\n\nA YOUNG WOMAN and a YOUNG MAN arrive on the road, on the far side of the fence, as the others play.\n\nThe ACTORS stop playing.  OM turns off the instrument.\n\nThe MUSICIANS play for a few moments more, and then stop.\n\nSECTION 4\n\nYW and YM ask permission to come into the village.\n\n[...]\n\nOM:\tAre you\u2026?  You aren't our guests.\n\nYW:\tNo.\n\nOM:\tWho are you then?\n\nYW: \t____ _____.  From Lazarevo.\n\nOM:\tLazarevo?\n\nYM:\tVillage 17.\n\nOM:\tWhat's Lazarevo, then?\n\nYM:\tThat was its founding name.\n\nOM:\tSays who?  There's no founding names.\n\nW:\tIs it just the two of you?\n\nYW:\tAnd two more.  Waiting down the road.\n\n[...]\n\nYW and YM want to tell the other villagers that they are going to the city, and invite any who want to come.\n\nThere are already other pioneers there, from at least four villages.   By the time they arrive themselves there will almost certainly be \"pilgrims\" from several more.\n\nWhat will they do there? asks CM.  Start over, says YW. or, the reason that they are going to the City is that they have heard that people in the City have received a transmission from the Earth. \n\nYou'll have no food there.  No water, they say.\n\nWater still flows into the cisterns outside the city.  We'll draw it from there at first, says the YW.\n\nYou have to go, says OM.  We are waiting for our guests from Village 20.\n\nYM and YW tell the others that they passed through Village 20 and they will not be coming.\n\nOM refuses to let them stay until the rest wake up, he demands that they leave.  There is no starting over.  (\"We are now part of the scattered disc.\")\n\nThey exhort W, CM, and CW to at least pass word on to the rest of the village.  CW and CM do not agree.  W says she will tell the others, in defiance of OM.  \n\nYM and YW leave the way they came.  \n\nOM warns W not to say anything.  W responds that she said what she did to make them go.  And they left, didn't they?\n\nW asks, will they resume the song?  CM says no: Village 20 won't come.  CW says they might be coming after all.  It's too early to know.  They may have changed their minds.  Start the song again, she says.  When the others wake up, they will be expecting the four to be playing.  If they aren't, they will have to explain what happened.\n\nCM refuses.  Stay and play the song, he says.  He'll wait until it's clear they aren't coming, and then he will gather a delegation to travel to Village 20 and confront them.  CM leaves, returning to the village.\n\nCW could say that she doesn't get the gift shit. She doesn't see the need for the other villages anymore.  \"We are fine to live out our days like this and enter the Scattered Disc.\"\n\nPlay, says CW.  OM says he needs a minute to think.  He sits against the instrument.  CW and W wait.  OM falls asleep.  CW goes to wake him up.  W tells her to give him a minute.  They wait.\n\nSECTION 5\n\nThe MUSICIANS play Section 5.\n\nW and CW wait.\n\nAfter several minutes, W stands, climbs over the fence and leaves in the direction YW and YM went.\n\nCW watches her go.\n\nCW waits and watches OM.  \n";
+var T = new _sentenceTokenizer.default();
+T.setEntry(TEXT);
+var SENTENCES = T.getSentences();
+var VIDEOS = ['pigs.mp4', 'ice.mp4', 'snails.m4v', 'dirt.mp4', 'cows.mp4'];
+var BGS = ['cloud', 'nebula', 'board', 'rocks'];
+
+function randomTo(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+var Words =
 /*#__PURE__*/
 function (_Component) {
-  _inherits(Video, _Component);
+  _inherits(Words, _Component);
 
-  function Video(props) {
+  function Words(props) {
     var _this;
 
-    _classCallCheck(this, Video);
+    _classCallCheck(this, Words);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Video).call(this, props));
-    _this.vid = _react.default.createRef();
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Words).call(this, props));
+    _this.state = _this.update();
+    _this.interval = null;
     return _this;
   }
 
-  _createClass(Video, [{
+  _createClass(Words, [{
     key: "componentDidMount",
-    value: function componentDidMount() {}
+    value: function componentDidMount() {
+      var _this2 = this;
+
+      console.log('mounted');
+      this.interval = setInterval(function () {
+        _this2.setState(_this2.update());
+      }, 5000);
+    }
+  }, {
+    key: "componentWillUnmount",
+    value: function componentWillUnmount() {
+      console.log('unmounted');
+      clearInterval(this.interval);
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      console.log('update text');
+      var numberOfSentences = randomTo(1, this.props.maxLength);
+      return {
+        numberOfSentences: numberOfSentences,
+        sentencesIndex: randomTo(0, SENTENCES.length - numberOfSentences)
+      };
+    }
   }, {
     key: "render",
     value: function render() {
-      var panel = this.props.panel;
+      var _this$state = this.state,
+          sentencesIndex = _this$state.sentencesIndex,
+          numberOfSentences = _this$state.numberOfSentences;
+      var text = SENTENCES.slice(sentencesIndex, sentencesIndex + numberOfSentences).join(' ');
+      return _react.default.createElement("div", {
+        className: "the-words"
+      }, _react.default.createElement("p", null, text));
+    }
+  }]);
+
+  return Words;
+}(_react.Component);
+
+Words.propTypes = {
+  maxLength: _propTypes.default.number.isRequired
+};
+Words.defaultProps = {
+  maxLength: 3
+};
+
+var Video =
+/*#__PURE__*/
+function (_Component2) {
+  _inherits(Video, _Component2);
+
+  function Video(props) {
+    var _this3;
+
+    _classCallCheck(this, Video);
+
+    _this3 = _possibleConstructorReturn(this, _getPrototypeOf(Video).call(this, props));
+    _this3.vid = _react.default.createRef();
+    return _this3;
+  }
+
+  _createClass(Video, [{
+    key: "render",
+    value: function render() {
+      var _this$props = this.props,
+          panel = _this$props.panel,
+          src = _this$props.src;
+      var fullSrc = "".concat(BUCKET).concat(src);
       return _react.default.createElement("div", {
         className: "video-wrapper",
         "data-panel": panel
+      }, _react.default.createElement("div", {
+        className: "video-wrapper-inner"
       }, _react.default.createElement("video", {
-        src: "http://fingermonkey.com/ozet-films/snails.m4v",
+        src: fullSrc,
         autoPlay: true,
         loop: true,
         ref: this.vid,
         muted: true
-      }));
+      })));
     }
   }]);
 
   return Video;
 }(_react.Component);
 
-Video.propTypes = {};
-
 var Screen =
 /*#__PURE__*/
-function (_Component2) {
-  _inherits(Screen, _Component2);
+function (_Component3) {
+  _inherits(Screen, _Component3);
 
   function Screen(props) {
-    var _this2;
+    var _this4;
 
     _classCallCheck(this, Screen);
 
-    _this2 = _possibleConstructorReturn(this, _getPrototypeOf(Screen).call(this, props));
-    _this2.state = {
-      panels: 3
-    };
-    return _this2;
+    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(Screen).call(this, props));
+    _this4.state = _this4.update();
+    return _this4;
   }
 
   _createClass(Screen, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      var _this5 = this;
+
+      setInterval(function () {
+        _this5.setState(_this5.update());
+      }, 10000);
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      return {
+        panels: randomTo(1, 3),
+        bg: BGS[randomTo(0, BGS.length - 1)]
+      };
+    }
+  }, {
     key: "renderPanels",
     value: function renderPanels() {
       var panels = [];
+      var videos = [].concat(VIDEOS);
 
       for (var i = 0; i < this.state.panels; i++) {
+        var src = videos.splice(randomTo(0, videos.length - 1), 1)[0];
         var props = {
           key: "panel-".concat(i),
-          panel: i + 1
+          panel: i + 1,
+          src: src
         };
         panels.push(_react.default.createElement(Video, props));
       }
@@ -26554,10 +28306,17 @@ function (_Component2) {
   }, {
     key: "render",
     value: function render() {
-      return _react.default.createElement("div", {
-        className: "ozet-screen",
-        "data-panels": this.state.panels
-      }, this.renderPanels());
+      var _this$state2 = this.state,
+          panels = _this$state2.panels,
+          bg = _this$state2.bg;
+      var props = {
+        className: 'ozet-screen',
+        'data-panels': panels,
+        style: {
+          'backgroundImage': "url('".concat(BUCKET).concat(bg, ".jpg')")
+        }
+      };
+      return _react.default.createElement("div", props, this.renderPanels(), _react.default.createElement(Words, null));
     }
   }]);
 
@@ -26565,7 +28324,7 @@ function (_Component2) {
 }(_react.Component);
 
 _reactDom.default.render(_react.default.createElement(Screen, null), document.getElementById('screen'));
-},{"react":"node_modules/react/index.js","react-dom":"node_modules/react-dom/index.js","prop-types":"node_modules/prop-types/index.js"}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"react":"node_modules/react/index.js","react-dom":"node_modules/react-dom/index.js","prop-types":"node_modules/prop-types/index.js","fs":"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/src/builtins/_empty.js","sentence-tokenizer":"node_modules/sentence-tokenizer/lib/tokenizer.js","util":"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/node_modules/util/util.js"}],"../../../.nvm/versions/node/v11.6.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -26592,7 +28351,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56890" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52869" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
